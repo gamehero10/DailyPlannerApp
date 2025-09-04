@@ -1,2 +1,2 @@
 # DailyPlannerApp
-This is a daily planner app. It will help users organize their daily routine and hobbies. 
+This is a daily planner app. It will help users organize their daily routine and hobbies. It will include several features 
