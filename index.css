@@ -32,7 +32,9 @@ h1 {
 
 #import-btn,
 #export-btn,
-.import-label {
+#import-input,
+.import-label,
+.clear-btn {
   background-color: #007bff;
   color: white;
   border: none;
@@ -41,6 +43,10 @@ h1 {
   font-size: 14px;
   cursor: pointer;
   border-radius: 4px;
+}
+
+.clear-btn {
+  background-color: #dc3545; /* Red for danger */
 }
 
 .time-block {

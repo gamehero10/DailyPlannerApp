@@ -2,6 +2,7 @@ const planner = document.getElementById('planner');
 const dateInput = document.getElementById('planner-date');
 const importInput = document.getElementById('import-input');
 const exportBtn = document.getElementById('export-btn');
+const clearBtn = document.getElementById('clear-btn');
 const startHour = 9;
 const endHour = 17;
 
@@ -10,17 +11,16 @@ if ("Notification" in window && Notification.permission !== "granted") {
   Notification.requestPermission();
 }
 
-// Set date picker to today
+// Set default date to today
 const today = new Date().toISOString().split('T')[0];
 dateInput.value = today;
 
-// Load planner for selected date
 dateInput.addEventListener('change', () => {
   renderPlanner(dateInput.value);
 });
 renderPlanner(today);
 
-// 🔄 Render planner for selected date
+// Render planner for selected date
 function renderPlanner(selectedDate) {
   planner.innerHTML = '';
   const now = new Date();
@@ -70,6 +70,7 @@ function renderPlanner(selectedDate) {
       savedData[hour].text = taskText;
       savedData[hour].completed = isChecked;
       saveTasks(selectedDate, savedData);
+
       if (taskText && Notification.permission === "granted") {
         scheduleNotification(selectedDate, hour, taskText);
       }
@@ -120,8 +121,7 @@ function scheduleNotification(dateString, hour, taskText) {
   }
 }
 
-//// ------------------------------
-/// 🔄 EXPORT TASKS
+/// EXPORT TASKS
 exportBtn.addEventListener('click', () => {
   const allTasks = {};
   for (let key in localStorage) {
@@ -134,14 +134,14 @@ exportBtn.addEventListener('click', () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `daily-planner-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.download = `daily-planner-${new Date().toISOString().split('T')[0]}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 });
 
-/// 🔄 IMPORT TASKS
+/// IMPORT TASKS
 importInput.addEventListener('change', (event) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -158,10 +158,28 @@ importInput.addEventListener('change', (event) => {
         }
       }
       alert("✅ Tasks imported successfully!");
-      renderPlanner(dateInput.value); // reload current day
+      renderPlanner(dateInput.value);
     } catch (err) {
       alert("⚠️ Failed to import. Invalid file format.");
     }
   };
   reader.readAsText(file);
+});
+
+/// CLEAR ALL TASKS
+clearBtn.addEventListener('click', () => {
+  const confirmed = confirm("⚠️ Are you sure you want to clear all tasks? This cannot be undone.");
+  if (!confirmed) return;
+
+  const keysToRemove = [];
+  for (let key in localStorage) {
+    if (key.startsWith('tasks-')) {
+      keysToRemove.push(key);
+    }
+  }
+
+  keysToRemove.forEach(key => localStorage.removeItem(key));
+
+  alert("🗑️ All tasks have been cleared.");
+  renderPlanner(dateInput.value);
 });
