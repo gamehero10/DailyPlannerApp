@@ -17,6 +17,7 @@ h1 {
 
 .time-block {
   display: flex;
+  align-items: center;
   margin-bottom: 10px;
 }
 
@@ -32,6 +33,11 @@ h1 {
   padding: 10px;
   border: none;
   font-size: 16px;
+}
+
+.task.completed {
+  text-decoration: line-through;
+  opacity: 0.5;
 }
 
 .past {
@@ -53,4 +59,8 @@ h1 {
   color: white;
   border: none;
   cursor: pointer;
+}
+
+.checkbox {
+  margin: 0 10px;
 }

@@ -3,8 +3,8 @@ const startHour = 9; // 9 AM
 const endHour = 17;  // 5 PM
 const currentHour = new Date().getHours();
 
-// Load saved tasks from localStorage
-const savedTasks = JSON.parse(localStorage.getItem("dailyTasks")) || {};
+// Load saved data from localStorage
+const savedData = JSON.parse(localStorage.getItem("dailyTasks")) || {};
 
 for (let hour = startHour; hour <= endHour; hour++) {
   const block = document.createElement('div');
@@ -15,23 +15,50 @@ for (let hour = startHour; hour <= endHour; hour++) {
   hourLabel.className = 'hour';
   hourLabel.textContent = formatHour(hour);
 
+  // Checkbox
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.className = 'checkbox';
+  checkbox.dataset.hour = hour;
+
   // Task input
   const taskInput = document.createElement('input');
   taskInput.type = 'text';
   taskInput.className = `task ${getTimeClass(hour)}`;
-  taskInput.value = savedTasks[hour] || '';
   taskInput.dataset.hour = hour;
+  taskInput.value = savedData[hour]?.text || '';
+
+  // If completed, mark it visually
+  if (savedData[hour]?.completed) {
+    checkbox.checked = true;
+    taskInput.classList.add('completed');
+  }
+
+  // Toggle completed state
+  checkbox.addEventListener('change', () => {
+    const isChecked = checkbox.checked;
+    taskInput.classList.toggle('completed', isChecked);
+
+    if (!savedData[hour]) savedData[hour] = {};
+    savedData[hour].completed = isChecked;
+    localStorage.setItem("dailyTasks", JSON.stringify(savedData));
+  });
 
   // Save button
   const saveBtn = document.createElement('button');
   saveBtn.className = 'saveBtn';
   saveBtn.textContent = '💾';
+
   saveBtn.addEventListener('click', () => {
-    savedTasks[hour] = taskInput.value;
-    localStorage.setItem("dailyTasks", JSON.stringify(savedTasks));
+    if (!savedData[hour]) savedData[hour] = {};
+    savedData[hour].text = taskInput.value;
+    savedData[hour].completed = checkbox.checked;
+
+    localStorage.setItem("dailyTasks", JSON.stringify(savedData));
   });
 
   block.appendChild(hourLabel);
+  block.appendChild(checkbox);
   block.appendChild(taskInput);
   block.appendChild(saveBtn);
   planner.appendChild(block);
