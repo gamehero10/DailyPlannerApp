@@ -15,6 +15,16 @@ h1 {
   margin-bottom: 20px;
 }
 
+.date-picker {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#planner-date {
+  padding: 6px 10px;
+  font-size: 16px;
+}
+
 .time-block {
   display: flex;
   align-items: center;

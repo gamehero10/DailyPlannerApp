@@ -1,114 +1,134 @@
 const planner = document.getElementById('planner');
-const startHour = 9; // 9 AM
-const endHour = 17;  // 5 PM
-const currentHour = new Date().getHours();
+const dateInput = document.getElementById('planner-date');
+const startHour = 9;
+const endHour = 17;
 
-// Request Notification permission
+// Notification permission
 if ("Notification" in window && Notification.permission !== "granted") {
   Notification.requestPermission();
 }
 
-// Load saved data from localStorage
-const savedData = JSON.parse(localStorage.getItem("dailyTasks")) || {};
+// Set date picker to today by default
+const today = new Date().toISOString().split('T')[0];
+dateInput.value = today;
 
-for (let hour = startHour; hour <= endHour; hour++) {
-  const block = document.createElement('div');
-  block.className = 'time-block';
+// Load planner for selected date
+dateInput.addEventListener('change', () => {
+  renderPlanner(dateInput.value);
+});
 
-  // Hour label
-  const hourLabel = document.createElement('div');
-  hourLabel.className = 'hour';
-  hourLabel.textContent = formatHour(hour);
+// Initial render
+renderPlanner(today);
 
-  // Checkbox
-  const checkbox = document.createElement('input');
-  checkbox.type = 'checkbox';
-  checkbox.className = 'checkbox';
-  checkbox.dataset.hour = hour;
+// 🔄 Render planner for a specific date
+function renderPlanner(selectedDate) {
+  planner.innerHTML = '';
+  const currentHour = new Date().getHours();
+  const savedData = JSON.parse(localStorage.getItem(`tasks-${selectedDate}`)) || {};
 
-  // Task input
-  const taskInput = document.createElement('input');
-  taskInput.type = 'text';
-  taskInput.className = `task ${getTimeClass(hour)}`;
-  taskInput.dataset.hour = hour;
-  taskInput.value = savedData[hour]?.text || '';
+  for (let hour = startHour; hour <= endHour; hour++) {
+    const block = document.createElement('div');
+    block.className = 'time-block';
 
-  // If completed, mark it visually
-  if (savedData[hour]?.completed) {
-    checkbox.checked = true;
-    taskInput.classList.add('completed');
-  }
+    // Hour label
+    const hourLabel = document.createElement('div');
+    hourLabel.className = 'hour';
+    hourLabel.textContent = formatHour(hour);
 
-  // Toggle completed state
-  checkbox.addEventListener('change', () => {
-    const isChecked = checkbox.checked;
-    taskInput.classList.toggle('completed', isChecked);
+    // Checkbox
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'checkbox';
+    checkbox.dataset.hour = hour;
 
-    if (!savedData[hour]) savedData[hour] = {};
-    savedData[hour].completed = isChecked;
-    localStorage.setItem("dailyTasks", JSON.stringify(savedData));
-  });
+    // Task input
+    const taskInput = document.createElement('input');
+    taskInput.type = 'text';
+    taskInput.className = `task ${getTimeClass(hour, selectedDate)}`;
+    taskInput.dataset.hour = hour;
+    taskInput.value = savedData[hour]?.text || '';
 
-  // Save button
-  const saveBtn = document.createElement('button');
-  saveBtn.className = 'saveBtn';
-  saveBtn.textContent = '💾';
-
-  saveBtn.addEventListener('click', () => {
-    const taskText = taskInput.value;
-    const isChecked = checkbox.checked;
-
-    if (!savedData[hour]) savedData[hour] = {};
-    savedData[hour].text = taskText;
-    savedData[hour].completed = isChecked;
-
-    localStorage.setItem("dailyTasks", JSON.stringify(savedData));
-
-    if (taskText && Notification.permission === "granted") {
-      scheduleNotification(hour, taskText);
+    if (savedData[hour]?.completed) {
+      checkbox.checked = true;
+      taskInput.classList.add('completed');
     }
-  });
 
-  block.appendChild(hourLabel);
-  block.appendChild(checkbox);
-  block.appendChild(taskInput);
-  block.appendChild(saveBtn);
-  planner.appendChild(block);
+    checkbox.addEventListener('change', () => {
+      const isChecked = checkbox.checked;
+      taskInput.classList.toggle('completed', isChecked);
+
+      if (!savedData[hour]) savedData[hour] = {};
+      savedData[hour].completed = isChecked;
+      saveTasks(selectedDate, savedData);
+    });
+
+    // Save button
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'saveBtn';
+    saveBtn.textContent = '💾';
+
+    saveBtn.addEventListener('click', () => {
+      const taskText = taskInput.value;
+      const isChecked = checkbox.checked;
+
+      if (!savedData[hour]) savedData[hour] = {};
+      savedData[hour].text = taskText;
+      savedData[hour].completed = isChecked;
+
+      saveTasks(selectedDate, savedData);
+
+      // Schedule notification if today or future
+      if (taskText && Notification.permission === "granted") {
+        scheduleNotification(selectedDate, hour, taskText);
+      }
+    });
+
+    block.appendChild(hourLabel);
+    block.appendChild(checkbox);
+    block.appendChild(taskInput);
+    block.appendChild(saveBtn);
+    planner.appendChild(block);
+  }
 }
 
-// Utils
+// 🧠 Save tasks to localStorage
+function saveTasks(dateKey, data) {
+  localStorage.setItem(`tasks-${dateKey}`, JSON.stringify(data));
+}
+
+// 🕐 Format hour
 function formatHour(hour) {
   const ampm = hour >= 12 ? 'PM' : 'AM';
   const displayHour = hour % 12 === 0 ? 12 : hour % 12;
   return `${displayHour} ${ampm}`;
 }
 
-function getTimeClass(hour) {
+// 📊 Determine time class
+function getTimeClass(hour, selectedDate) {
+  const now = new Date();
+  const selected = new Date(selectedDate);
+  const selectedIsToday = now.toDateString() === selected.toDateString();
+  const currentHour = now.getHours();
+
+  if (!selectedIsToday) return 'future';
   if (hour < currentHour) return 'past';
   if (hour === currentHour) return 'present';
   return 'future';
 }
 
-// 🕒 Notification scheduler
-function scheduleNotification(hour, text) {
+// 🔔 Schedule notification
+function scheduleNotification(dateString, hour, taskText) {
   const now = new Date();
-  const taskTime = new Date();
-  taskTime.setHours(hour);
-  taskTime.setMinutes(0);
-  taskTime.setSeconds(0);
-  taskTime.setMilliseconds(0);
-
+  const taskTime = new Date(`${dateString}T${String(hour).padStart(2, '0')}:00:00`);
   const delay = taskTime - now;
 
   if (delay > 0) {
     setTimeout(() => {
       new Notification("🕒 Task Reminder", {
-        body: `It's time for: "${text}"`,
-        icon: "https://cdn-icons-png.flaticon.com/512/1827/1827392.png", // optional
+        body: `Task at ${formatHour(hour)}: "${taskText}"`,
+        icon: "https://cdn-icons-png.flaticon.com/512/1827/1827392.png"
       });
     }, delay);
-    console.log(`Notification scheduled in ${Math.round(delay / 1000)}s for hour ${hour}`);
-  } else {
-    console.log(`Skipped notification for past time (hour: ${hour})`);
+    console.log(`Scheduled notification for ${dateString} ${formatHour(hour)}`);
   }
 }
