@@ -16,7 +16,15 @@
       <input type="date" id="planner-date" />
     </div>
 
-    <!-- 📤 Export / Import Buttons -->
+    <!-- 🕒 Time Range Selectors -->
+    <div class="time-range">
+      <label for="start-time">Start Time:</label>
+      <select id="start-time"></select>
+      <label for="end-time">End Time:</label>
+      <select id="end-time"></select>
+    </div>
+
+    <!-- 📤 Export / Import / Clear Buttons -->
     <div class="import-export">
       <button id="export-btn">Export Tasks</button>
       <label for="import-input" class="import-label">Import Tasks</label>
@@ -25,8 +33,9 @@
     </div>
 
     <div id="planner"></div>
+
   </div>
 
-  <script src="script.js"></script>
+  <script src="index.js"></script>
 </body>
 </html>

@@ -15,19 +15,14 @@ h1 {
   margin-bottom: 20px;
 }
 
-.date-picker {
+.date-picker, .time-range, .import-export {
   text-align: center;
   margin-bottom: 20px;
 }
 
-#planner-date {
+#planner-date, #start-time, #end-time {
   padding: 6px 10px;
   font-size: 16px;
-}
-
-.import-export {
-  text-align: center;
-  margin-bottom: 20px;
 }
 
 #import-btn,
@@ -46,7 +41,7 @@ h1 {
 }
 
 .clear-btn {
-  background-color: #dc3545; /* Red for danger */
+  background-color: #dc3545;
 }
 
 .time-block {

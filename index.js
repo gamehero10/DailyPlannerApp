@@ -3,8 +3,40 @@ const dateInput = document.getElementById('planner-date');
 const importInput = document.getElementById('import-input');
 const exportBtn = document.getElementById('export-btn');
 const clearBtn = document.getElementById('clear-btn');
-const startHour = 9;
-const endHour = 17;
+const startTimeSelect = document.getElementById('start-time');
+const endTimeSelect = document.getElementById('end-time');
+
+let startHour = parseInt(localStorage.getItem('startHour')) || 9;
+let endHour = parseInt(localStorage.getItem('endHour')) || 17;
+
+// Populate time dropdowns
+for (let h = 0; h < 24; h++) {
+  const optionStart = document.createElement('option');
+  const optionEnd = document.createElement('option');
+  optionStart.value = h;
+  optionEnd.value = h;
+  optionStart.textContent = formatHour(h);
+  optionEnd.textContent = formatHour(h);
+  startTimeSelect.appendChild(optionStart);
+  endTimeSelect.appendChild(optionEnd);
+}
+startTimeSelect.value = startHour;
+endTimeSelect.value = endHour;
+
+// Update planner when time range changes
+[startTimeSelect, endTimeSelect].forEach(select => {
+  select.addEventListener('change', () => {
+    startHour = parseInt(startTimeSelect.value);
+    endHour = parseInt(endTimeSelect.value);
+    if (startHour >= endHour) {
+      alert("⚠️ Start time must be before end time.");
+      return;
+    }
+    localStorage.setItem('startHour', startHour);
+    localStorage.setItem('endHour', endHour);
+    renderPlanner(dateInput.value);
+  });
+});
 
 // Notification permission
 if ("Notification" in window && Notification.permission !== "granted") {
@@ -20,7 +52,6 @@ dateInput.addEventListener('change', () => {
 });
 renderPlanner(today);
 
-// Render planner for selected date
 function renderPlanner(selectedDate) {
   planner.innerHTML = '';
   const now = new Date();
@@ -70,7 +101,6 @@ function renderPlanner(selectedDate) {
       savedData[hour].text = taskText;
       savedData[hour].completed = isChecked;
       saveTasks(selectedDate, savedData);
-
       if (taskText && Notification.permission === "granted") {
         scheduleNotification(selectedDate, hour, taskText);
       }
@@ -121,7 +151,7 @@ function scheduleNotification(dateString, hour, taskText) {
   }
 }
 
-/// EXPORT TASKS
+// EXPORT
 exportBtn.addEventListener('click', () => {
   const allTasks = {};
   for (let key in localStorage) {
@@ -129,7 +159,6 @@ exportBtn.addEventListener('click', () => {
       allTasks[key] = JSON.parse(localStorage.getItem(key));
     }
   }
-
   const blob = new Blob([JSON.stringify(allTasks, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -141,7 +170,7 @@ exportBtn.addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
-/// IMPORT TASKS
+// IMPORT
 importInput.addEventListener('change', (event) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -159,27 +188,19 @@ importInput.addEventListener('change', (event) => {
       }
       alert("✅ Tasks imported successfully!");
       renderPlanner(dateInput.value);
-    } catch (err) {
-      alert("⚠️ Failed to import. Invalid file format.");
+    } catch {
+      alert("⚠️ Failed to import. Invalid file.");
     }
   };
   reader.readAsText(file);
 });
 
-/// CLEAR ALL TASKS
+// CLEAR
 clearBtn.addEventListener('click', () => {
-  const confirmed = confirm("⚠️ Are you sure you want to clear all tasks? This cannot be undone.");
-  if (!confirmed) return;
-
-  const keysToRemove = [];
-  for (let key in localStorage) {
-    if (key.startsWith('tasks-')) {
-      keysToRemove.push(key);
-    }
+  if (confirm("⚠️ Clear ALL tasks? This cannot be undone.")) {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('tasks-'));
+    keys.forEach(k => localStorage.removeItem(k));
+    alert("🗑️ All tasks cleared.");
+    renderPlanner(dateInput.value);
   }
-
-  keysToRemove.forEach(key => localStorage.removeItem(key));
-
-  alert("🗑️ All tasks have been cleared.");
-  renderPlanner(dateInput.value);
 });
