@@ -1,0 +1,56 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 800px;
+  margin: auto;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.time-block {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.hour {
+  width: 100px;
+  padding: 10px;
+  background: #ddd;
+  text-align: center;
+}
+
+.task {
+  flex-grow: 1;
+  padding: 10px;
+  border: none;
+  font-size: 16px;
+}
+
+.past {
+  background-color: #e0e0e0;
+}
+
+.present {
+  background-color: #ffeeba;
+}
+
+.future {
+  background-color: #c3e6cb;
+}
+
+.saveBtn {
+  padding: 10px;
+  width: 60px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
